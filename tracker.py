@@ -94,7 +94,7 @@ def main():
         now = parse_time(args.now) if args.now else datetime.now(timezone.utc)
         report = assess_samples(read_samples(args.input, now), now, args.deadline)
         write_report(args.output, report)
-    except (ValueError, OSError, csv.Error) as error:
+    except (ValueError, OverflowError, OSError, csv.Error) as error:
         print(f"Cannot process batch: {error}", file=sys.stderr)
         return 2
     print("SAMPLE BATCH REPORT")
