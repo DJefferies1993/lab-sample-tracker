@@ -1,8 +1,11 @@
 """Boundary and invalid-input checks for the sample tracker."""
 import tempfile
 import unittest
+import io
+from contextlib import redirect_stderr
+from unittest.mock import patch
 from pathlib import Path
-from tracker import assess_samples, parse_time, read_samples
+from tracker import assess_samples, main, parse_time, read_samples
 
 
 # SECTION 1 — Deadline behaviour
@@ -48,6 +51,13 @@ class InputTests(unittest.TestCase):
     def test_zero_deadline(self):
         with self.assertRaisesRegex(ValueError, "deadline"):
             assess_samples([], parse_time("2026-01-01T10:00:00Z"), 0)
+
+    def test_excessive_deadline_returns_input_error(self):
+        arguments = ["tracker.py", "data/samples.csv", "--now",
+                     "2026-01-01T10:30:00Z", "--deadline", "999999999999999999"]
+        with patch("sys.argv", arguments), redirect_stderr(io.StringIO()) as errors:
+            self.assertEqual(main(), 2)
+            self.assertIn("Cannot process batch", errors.getvalue())
 
 
 if __name__ == "__main__":
